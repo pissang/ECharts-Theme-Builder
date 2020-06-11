@@ -581,7 +581,6 @@ function getOptions(vm) {
 
 ////////////////////// 旭日图 ////////////////////////////////
 {
-  animation: false,
   series: {
       type: 'sunburst',
       // highlightPolicy: 'ancestor',
