@@ -1,6 +1,174 @@
 function getOptions(vm) {
+    var groupCnt = vm ? vm.theme.seriesCnt : 4;
+    var axisCat = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    var dataLength = axisCat.length;
+    var getLegend = function() {
+      var data = [];
+      for (var i = 0; i < groupCnt; ++i) {
+        data.push('第' + (i + 1) + '组');
+      }
+      return data;
+    };
+    var getLegendWithName = function() {
+      var data = [];
+      for (var i = 0; i < groupCnt; ++i) {
+        data.push({
+          name: '第' + (i + 1) + '组'
+        });
+      }
+      return data;
+    };
+    var legend = {
+      data: getLegend(),
+      right: 0
+    };
+    var getSeriesRandomValue = function(typeName) {
+      var data = [];
+      if (typeName === 'scatter') {
+        var dlen = 32;
+      }
+      else {
+        var dlen = dataLength;
+      }
+      for (var i = 0; i < groupCnt; ++i) {
+        var group = [];
+        for (var j = 0; j < dlen; ++j) {
+          if (typeName === 'scatter') {
+            var v = [Math.floor((Math.random() * 600 + 400) * (groupCnt - i) /
+              groupCnt),
+              Math.floor((Math.random() * 600 + 400) * (groupCnt - i) /
+              groupCnt)];
+          }
+          else {
+            var v = Math.floor((Math.random() * 600 + 400) * (groupCnt - i) /
+              groupCnt);
+          }
+          group.push(v);
+        }
+        if (typeName === 'radar') {
+          group = [group];
+        }
+        data.push({
+          type: typeName,
+          data: group,
+          name: '第' + (i + 1) + '组'
+        });
+      }
+      return data;
+    };
+    var getSeriesRandomStack = function(typeName) {
+      var data = getSeriesRandomValue(typeName);
+      for (var i = 0; i < data.length; ++i) {
+        data[i].areaStyle = {normal: {}};
+        data[i].stack = 'total';
+      }
+      return data;
+    };
+    var getSeriesRandomGroup = function(typeName) {
+      var data = [];
+      for (var i = 0; i < groupCnt; ++i) {
+        data.push({
+          name: legend.data[i],
+          value: Math.floor((Math.random() * 800 + 200) * (groupCnt - i) /
+            groupCnt)
+        });
+      }
+      return {
+        type: typeName,
+        data: data
+      };
+    };
 
   const options = [
+////////////////////// 所有系列的图 //////////////////////////
+{
+    title: {
+      text: '折线图',
+      subtext: '副标题样式'
+    },
+    series: getSeriesRandomValue('line'),
+    xAxis: {
+      type: 'category',
+      data: axisCat
+    },
+    yAxis: {
+      type: 'value'
+    },
+    grid: {
+      left: 60,
+      right: 20,
+      top: 60,
+      bottom: 50
+    }
+}, {
+    title: {
+      text: '折线堆积面积图',
+      subtext: '副标题样式'
+    },
+    series: getSeriesRandomStack('line'),
+    xAxis: {
+      type: 'category',
+      data: axisCat,
+      boundaryGap: false
+    },
+    yAxis: {
+      type: 'value'
+    },
+    grid: {
+      left: 60,
+      right: 20,
+      top: 60,
+      bottom: 50
+    }
+}, {
+    title: {
+      text: '柱状图'
+    },
+    series: getSeriesRandomValue('bar'),
+    xAxis: {
+      type: 'category',
+      data: axisCat
+    },
+    yAxis: {
+      type: 'value'
+    }
+  }, {
+    title: {
+      text: '柱状堆积图'
+    },
+    series: getSeriesRandomStack('bar'),
+    xAxis: {
+      type: 'category',
+      data: axisCat
+    },
+    yAxis: {
+      type: 'value'
+    }
+  }, {
+    title: {
+      text: '散点图'
+    },
+    series: getSeriesRandomValue('scatter'),
+    tooltip: {
+      trigger: 'item'
+    },
+    xAxis: {
+      type: 'value'
+    },
+    yAxis: {
+      type: 'value'
+    }
+  }, {
+    title: {
+      text: '饼图'
+    },
+    series: getSeriesRandomGroup('pie'),
+    tooltip: {
+      trigger: 'item'
+    }
+  },
+
+
 ////////////////////// 区域图 ////////////////////////////////
 {
       title: {
