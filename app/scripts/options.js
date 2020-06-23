@@ -105,7 +105,10 @@ function getOptions(vm) {
       text: '折线堆积面积图',
       subtext: '副标题样式'
     },
-    series: getSeriesRandomStack('line'),
+    series: getSeriesRandomStack('line').map(function (seriesOpt) {
+        seriesOpt.label = { show: true };
+        return seriesOpt;
+    }),
     xAxis: {
       type: 'category',
       data: axisCat,
@@ -136,7 +139,10 @@ function getOptions(vm) {
     title: {
       text: '柱状堆积图'
     },
-    series: getSeriesRandomStack('bar'),
+    series: getSeriesRandomStack('bar').map(function (seriesOpt) {
+        seriesOpt.label = { show: true };
+        return seriesOpt;
+    }),
     xAxis: {
       type: 'category',
       data: axisCat
@@ -273,9 +279,9 @@ function getOptions(vm) {
   // Declare several bar series, each will be mapped
   // to a column of dataset.source by default.
   series: [
-      {type: 'bar'},
-      {type: 'bar'},
-      {type: 'bar'}
+      {type: 'bar', label: { show: true, position: 'top' }},
+      {type: 'bar', label: { show: true, position: 'top' }},
+      {type: 'bar', label: { show: true, position: 'top' }}
   ]
 },
 
