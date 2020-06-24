@@ -696,74 +696,49 @@ function getOptions(vm) {
   },
 
   series: [
-      {
-          name: '漏斗图',
-          type: 'funnel',
-          width: '40%',
-          height: '45%',
-          left: '5%',
-          top: '50%',
-          data: [
-              {value: 60, name: '访问'},
-              {value: 30, name: '咨询'},
-              {value: 10, name: '订单'},
-              {value: 80, name: '点击'},
-              {value: 100, name: '展现'}
-          ]
-      },
-      {
-          name: '金字塔',
-          type: 'funnel',
-          width: '40%',
-          height: '45%',
-          left: '5%',
-          top: '5%',
-          sort: 'ascending',
-          data: [
-              {value: 60, name: '访问'},
-              {value: 30, name: '咨询'},
-              {value: 10, name: '订单'},
-              {value: 80, name: '点击'},
-              {value: 100, name: '展现'}
-          ]
-      },
-      {
-          name: '漏斗图',
-          type: 'funnel',
-          width: '40%',
-          height: '45%',
-          left: '55%',
-          top: '5%',
-          label: {
-              position: 'left'
-          },
-          data: [
-              {value: 60, name: '访问'},
-              {value: 30, name: '咨询'},
-              {value: 10, name: '订单'},
-              {value: 80, name: '点击'},
-              {value: 100, name: '展现'}
-          ]
-      },
-      {
-          name: '金字塔',
-          type: 'funnel',
-          width: '40%',
-          height: '45%',
-          left: '55%',
-          top: '50%',
-          sort: 'ascending',
-          label: {
-              position: 'left'
-          },
-          data: [
-              {value: 60, name: '访问'},
-              {value: 30, name: '咨询'},
-              {value: 10, name: '订单'},
-              {value: 80, name: '点击'},
-              {value: 100, name: '展现'}
-          ]
-      }
+    {
+        name:'漏斗图',
+        type:'funnel',
+        left: '10%',
+        top: 60,
+        //x2: 80,
+        bottom: 60,
+        width: '80%',
+        // height: {totalHeight} - y - y2,
+        min: 0,
+        max: 100,
+        minSize: '0%',
+        maxSize: '100%',
+        sort: 'descending',
+        gap: 2,
+        label: {
+            show: true,
+            position: 'inside'
+        },
+        labelLine: {
+            length: 10,
+            lineStyle: {
+                width: 1,
+                type: 'solid'
+            }
+        },
+        itemStyle: {
+            borderColor: '#fff',
+            borderWidth: 1
+        },
+        emphasis: {
+            label: {
+                fontSize: 20
+            }
+        },
+        data: [
+            {value: 60, name: '访问'},
+            {value: 40, name: '咨询'},
+            {value: 20, name: '订单'},
+            {value: 80, name: '点击'},
+            {value: 100, name: '展现'}
+        ].sort(function (a, b) { return b.value - a.value; })
+    }
   ]
 },
 
