@@ -4336,6 +4336,9 @@ class Point4 {
     return this;
   }
   transform(m2) {
+    if (!m2) {
+      return;
+    }
     const x = this.x;
     const y = this.y;
     this.x = m2[0] * x + m2[2] * y + m2[4];
@@ -4740,11 +4743,16 @@ function calculateTextPosition(out2, opts, rect) {
   return out2;
 }
 
-// node_modules/zrender/src/core/config.ts
+// node_modules/zrender/src/config.ts
+let dpr = 1;
+if (typeof window !== "undefined") {
+  dpr = Math.max(window.devicePixelRatio || 1, 1);
+}
+const devicePixelRatio = dpr;
 const DARK_MODE_THRESHOLD2 = 0.4;
 const DARK_LABEL_COLOR = "#333";
 const LIGHT_LABEL_COLOR = "#ccc";
-const LIGHTER_LABEL_COLOR = "#ddd";
+const LIGHTER_LABEL_COLOR = "#eee";
 
 // node_modules/zrender/src/Element.ts
 const PRESERVED_NORMAL_STATE = "__zr_normal__";
@@ -5736,7 +5744,10 @@ class Displayable11 extends Element_default {
         this._mergeStyle(targetStyle, state.style);
       }
     } else if (needsRestoreToNormal) {
-      targetStyle = normalState.style;
+      if (normalState.style.opacity === 0) {
+        debugger;
+      }
+      targetStyle = this._mergeStyle(this.createStyle(), normalState.style);
     }
     if (targetStyle) {
       if (transition) {
@@ -5757,6 +5768,9 @@ class Displayable11 extends Element_default {
             const key = targetKeys[i];
             this.style[key] = this.style[key];
           }
+        }
+        if (targetStyle.opacity === 0) {
+          debugger;
         }
         this._transitionState(stateName, {
           style: targetStyle
@@ -5816,13 +5830,6 @@ Displayable11.initDefaultProps = function() {
   dispProto.__dirty = Element_default.REDARAW_BIT | Displayable11.STYLE_CHANGED_BIT;
 }();
 const Displayable_default = Displayable11;
-
-// node_modules/zrender/src/config.ts
-let dpr = 1;
-if (typeof window !== "undefined") {
-  dpr = Math.max(window.devicePixelRatio || 1, 1);
-}
-const devicePixelRatio = dpr;
 
 // node_modules/zrender/src/core/curve.ts
 const mathPow = Math.pow;
@@ -6162,17 +6169,17 @@ const PI25 = Math.PI * 2;
 const start = create2();
 const end = create2();
 const extremity = create2();
-function fromPoints(points9, min4, max4) {
-  if (points9.length === 0) {
+function fromPoints(points11, min4, max4) {
+  if (points11.length === 0) {
     return;
   }
-  let p = points9[0];
+  let p = points11[0];
   let left = p[0];
   let right = p[0];
   let top = p[1];
   let bottom = p[1];
-  for (let i = 1; i < points9.length; i++) {
-    p = points9[i];
+  for (let i = 1; i < points11.length; i++) {
+    p = points11[i];
     left = mathMin3(left, p[0]);
     right = mathMax3(right, p[0]);
     top = mathMin3(top, p[1]);
@@ -7472,7 +7479,7 @@ class Path10 extends Displayable_default {
         const fillLum = lum2(pathFill, 0);
         if (fillLum > 0.6) {
           return DARK_LABEL_COLOR;
-        } else if (fillLum > 0.3) {
+        } else if (fillLum > 0.2) {
           return LIGHTER_LABEL_COLOR;
         }
         return LIGHT_LABEL_COLOR;
@@ -8624,12 +8631,12 @@ function interpolate(p0, p1, p2, p3, t, t2, t3) {
   const v12 = (p3 - p1) * 0.5;
   return (2 * (p1 - p2) + v0 + v12) * t3 + (-3 * (p1 - p2) - 2 * v0 - v12) * t2 + v0 * t + p1;
 }
-function smoothSpline_default(points9, isLoop) {
-  const len2 = points9.length;
+function smoothSpline_default(points11, isLoop) {
+  const len2 = points11.length;
   const ret = [];
   let distance2 = 0;
   for (let i = 1; i < len2; i++) {
-    distance2 += distance(points9[i - 1], points9[i]);
+    distance2 += distance(points11[i - 1], points11[i]);
   }
   let segs = distance2 / 2;
   segs = segs < len2 ? len2 : segs;
@@ -8638,17 +8645,17 @@ function smoothSpline_default(points9, isLoop) {
     const idx = Math.floor(pos);
     const w = pos - idx;
     let p0;
-    let p1 = points9[idx % len2];
+    let p1 = points11[idx % len2];
     let p2;
     let p3;
     if (!isLoop) {
-      p0 = points9[idx === 0 ? idx : idx - 1];
-      p2 = points9[idx > len2 - 2 ? len2 - 1 : idx + 1];
-      p3 = points9[idx > len2 - 3 ? len2 - 1 : idx + 2];
+      p0 = points11[idx === 0 ? idx : idx - 1];
+      p2 = points11[idx > len2 - 2 ? len2 - 1 : idx + 1];
+      p3 = points11[idx > len2 - 3 ? len2 - 1 : idx + 2];
     } else {
-      p0 = points9[(idx - 1 + len2) % len2];
-      p2 = points9[(idx + 1) % len2];
-      p3 = points9[(idx + 2) % len2];
+      p0 = points11[(idx - 1 + len2) % len2];
+      p2 = points11[(idx + 1) % len2];
+      p3 = points11[(idx + 2) % len2];
     }
     const w2 = w * w;
     const w3 = w * w2;
@@ -8658,7 +8665,7 @@ function smoothSpline_default(points9, isLoop) {
 }
 
 // node_modules/zrender/src/graphic/helper/smoothBezier.ts
-function smoothBezier_default(points9, smooth, isLoop, constraint) {
+function smoothBezier_default(points11, smooth, isLoop, constraint) {
   const cps = [];
   const v4 = [];
   const v12 = [];
@@ -8670,25 +8677,25 @@ function smoothBezier_default(points9, smooth, isLoop, constraint) {
   if (constraint) {
     min4 = [Infinity, Infinity];
     max4 = [-Infinity, -Infinity];
-    for (let i = 0, len2 = points9.length; i < len2; i++) {
-      min3(min4, min4, points9[i]);
-      max3(max4, max4, points9[i]);
+    for (let i = 0, len2 = points11.length; i < len2; i++) {
+      min3(min4, min4, points11[i]);
+      max3(max4, max4, points11[i]);
     }
     min3(min4, min4, constraint[0]);
     max3(max4, max4, constraint[1]);
   }
-  for (let i = 0, len2 = points9.length; i < len2; i++) {
-    const point = points9[i];
+  for (let i = 0, len2 = points11.length; i < len2; i++) {
+    const point = points11[i];
     if (isLoop) {
-      prevPoint = points9[i ? i - 1 : len2 - 1];
-      nextPoint = points9[(i + 1) % len2];
+      prevPoint = points11[i ? i - 1 : len2 - 1];
+      nextPoint = points11[(i + 1) % len2];
     } else {
       if (i === 0 || i === len2 - 1) {
-        cps.push(clone3(points9[i]));
+        cps.push(clone3(points11[i]));
         continue;
       } else {
-        prevPoint = points9[i - 1];
-        nextPoint = points9[i + 1];
+        prevPoint = points11[i - 1];
+        nextPoint = points11[i + 1];
       }
     }
     sub(v4, nextPoint, prevPoint);
@@ -8722,25 +8729,25 @@ function smoothBezier_default(points9, smooth, isLoop, constraint) {
 // node_modules/zrender/src/graphic/helper/poly.ts
 function buildPath(ctx, shape, closePath) {
   const smooth = shape.smooth;
-  let points9 = shape.points;
-  if (points9 && points9.length >= 2) {
+  let points11 = shape.points;
+  if (points11 && points11.length >= 2) {
     if (smooth && smooth !== "spline") {
-      const controlPoints = smoothBezier_default(points9, smooth, closePath, shape.smoothConstraint);
-      ctx.moveTo(points9[0][0], points9[0][1]);
-      const len2 = points9.length;
+      const controlPoints = smoothBezier_default(points11, smooth, closePath, shape.smoothConstraint);
+      ctx.moveTo(points11[0][0], points11[0][1]);
+      const len2 = points11.length;
       for (let i = 0; i < (closePath ? len2 : len2 - 1); i++) {
         const cp12 = controlPoints[i * 2];
         const cp2 = controlPoints[i * 2 + 1];
-        const p = points9[(i + 1) % len2];
+        const p = points11[(i + 1) % len2];
         ctx.bezierCurveTo(cp12[0], cp12[1], cp2[0], cp2[1], p[0], p[1]);
       }
     } else {
       if (smooth === "spline") {
-        points9 = smoothSpline_default(points9, closePath);
+        points11 = smoothSpline_default(points11, closePath);
       }
-      ctx.moveTo(points9[0][0], points9[0][1]);
-      for (let i = 1, l = points9.length; i < l; i++) {
-        ctx.lineTo(points9[i][0], points9[i][1]);
+      ctx.moveTo(points11[0][0], points11[0][1]);
+      for (let i = 1, l = points11.length; i < l; i++) {
+        ctx.lineTo(points11[i][0], points11[i][1]);
       }
     }
     closePath && ctx.closePath();
@@ -9212,13 +9219,13 @@ function inheritStyle(parent, child) {
 }
 function parsePoints(pointsString) {
   const list = trim(pointsString).split(DILIMITER_REG);
-  const points9 = [];
+  const points11 = [];
   for (let i = 0; i < list.length; i += 2) {
     const x = parseFloat(list[i]);
     const y = parseFloat(list[i + 1]);
-    points9.push([x, y]);
+    points11.push([x, y]);
   }
-  return points9;
+  return points11;
 }
 const attributesMap = {
   fill: "fill",
@@ -12715,8 +12722,8 @@ function groupTransition(g1, g2, animatableModel) {
     }
   });
 }
-function clipPointsByRect(points9, rect) {
-  return map2(points9, function(point) {
+function clipPointsByRect(points11, rect) {
+  return map2(points11, function(point) {
     let x = point[0];
     x = mathMax9(x, rect.x);
     x = mathMin9(x, rect.x + rect.width);
@@ -12757,9 +12764,9 @@ function createIcon(iconStr, opt, rect) {
     return iconStr.indexOf("image://") === 0 ? (style2.image = iconStr.slice(8), defaults(style2, rect), new Image_default(innerOpts)) : makePath(iconStr.replace("path://", ""), innerOpts, rect, "center");
   }
 }
-function linePolygonIntersect(a1x, a1y, a2x, a2y, points9) {
-  for (let i = 0, p2 = points9[points9.length - 1]; i < points9.length; i++) {
-    const p = points9[i];
+function linePolygonIntersect(a1x, a1y, a2x, a2y, points11) {
+  for (let i = 0, p2 = points11[points11.length - 1]; i < points11.length; i++) {
+    const p = points11[i];
     if (lineLineIntersect(a1x, a1y, a2x, a2y, p[0], p[1], p2[0], p2[1])) {
       return true;
     }
@@ -18768,14 +18775,14 @@ function updateLabelLinePoints(target, labelLineModel) {
     return;
   }
   const labelGuideConfig = target.textGuideLineConfig || {};
-  const points9 = [[0, 0], [0, 0], [0, 0]];
+  const points11 = [[0, 0], [0, 0], [0, 0]];
   const searchSpace = labelGuideConfig.candidates || DEFAULT_SEARCH_SPACE;
   const labelRect = label.getBoundingRect().clone();
   labelRect.applyTransform(label.getComputedTransform());
   let minDist = Infinity;
   const anchorPoint = labelGuideConfig && labelGuideConfig.anchor;
   const targetTransform = target.getComputedTransform();
-  const targetInversedTransform = invert([], targetTransform);
+  const targetInversedTransform = targetTransform && invert([], targetTransform);
   const len2 = labelLineModel.get("length2") || 0;
   if (anchorPoint) {
     pt2.copy(anchorPoint);
@@ -18790,14 +18797,14 @@ function updateLabelLinePoints(target, labelLineModel) {
       minDist = dist3;
       pt1.transform(targetTransform);
       pt2.transform(targetTransform);
-      pt2.toArray(points9[0]);
-      pt1.toArray(points9[1]);
-      pt0.toArray(points9[2]);
+      pt2.toArray(points11[0]);
+      pt1.toArray(points11[1]);
+      pt0.toArray(points11[2]);
     }
   }
-  limitTurnAngle(points9, labelLineModel.get("minTurnAngle"));
+  limitTurnAngle(points11, labelLineModel.get("minTurnAngle"));
   labelLine.setShape({
-    points: points9
+    points: points11
   });
 }
 const tmpArr = [];
@@ -18851,28 +18858,28 @@ function setLabelLineState(labelLine, ignore, stateName, stateModel) {
 }
 function buildLabelLinePath(path2, shape) {
   const smooth = shape.smooth;
-  const points9 = shape.points;
-  if (!points9) {
+  const points11 = shape.points;
+  if (!points11) {
     return;
   }
-  path2.moveTo(points9[0][0], points9[0][1]);
-  if (smooth > 0 && points9.length >= 3) {
-    const len1 = dist(points9[0], points9[1]);
-    const len2 = dist(points9[1], points9[2]);
+  path2.moveTo(points11[0][0], points11[0][1]);
+  if (smooth > 0 && points11.length >= 3) {
+    const len1 = dist(points11[0], points11[1]);
+    const len2 = dist(points11[1], points11[2]);
     if (!len1 || !len2) {
-      path2.lineTo(points9[1][0], points9[1][1]);
-      path2.lineTo(points9[2][0], points9[2][1]);
+      path2.lineTo(points11[1][0], points11[1][1]);
+      path2.lineTo(points11[2][0], points11[2][1]);
       return;
     }
     const moveLen = Math.min(len1, len2) * smooth;
-    const midPoint0 = lerp([], points9[1], points9[0], moveLen / len1);
-    const midPoint2 = lerp([], points9[1], points9[2], moveLen / len2);
+    const midPoint0 = lerp([], points11[1], points11[0], moveLen / len1);
+    const midPoint2 = lerp([], points11[1], points11[2], moveLen / len2);
     const midPoint1 = lerp([], midPoint0, midPoint2, 0.5);
     path2.bezierCurveTo(midPoint0[0], midPoint0[1], midPoint0[0], midPoint0[1], midPoint1[0], midPoint1[1]);
-    path2.bezierCurveTo(midPoint2[0], midPoint2[1], midPoint2[0], midPoint2[1], points9[2][0], points9[2][1]);
+    path2.bezierCurveTo(midPoint2[0], midPoint2[1], midPoint2[0], midPoint2[1], points11[2][0], points11[2][1]);
   } else {
-    for (let i = 1; i < points9.length; i++) {
-      path2.lineTo(points9[i][0], points9[i][1]);
+    for (let i = 1; i < points11.length; i++) {
+      path2.lineTo(points11[i][0], points11[i][1]);
     }
   }
 }
@@ -19143,7 +19150,7 @@ function prepareLayoutCallbackParams(labelItem) {
 }
 const LABEL_OPTION_TO_STYLE_KEYS = ["align", "verticalAlign", "width", "height"];
 const dummyTransformable = new Transformable_default();
-const labelAnimationStore = makeInner();
+const labelLayoutInnerStore = makeInner();
 const labelLineAnimationStore = makeInner();
 function extendWithKeys(target, source, keys2) {
   for (let i = 0; i < keys2.length; i++) {
@@ -19263,9 +19270,11 @@ class LabelManager2 {
           offset: [layoutOption.dx || 0, layoutOption.dy || 0]
         });
       }
+      let changedByUser = false;
       if (layoutOption.x != null) {
         label.x = parsePercent3(layoutOption.x, width);
         label.setStyle("x", 0);
+        changedByUser = changedByUser || true;
       } else {
         label.x = defaultLabelAttr.x;
         label.setStyle("x", defaultLabelAttr.style.x);
@@ -19273,9 +19282,13 @@ class LabelManager2 {
       if (layoutOption.y != null) {
         label.y = parsePercent3(layoutOption.y, height);
         label.setStyle("y", 0);
+        changedByUser = changedByUser || true;
       } else {
         label.y = defaultLabelAttr.y;
         label.setStyle("y", defaultLabelAttr.style.y);
+      }
+      if (changedByUser) {
+        labelLayoutInnerStore(label).changedByUser = true;
       }
       label.rotation = layoutOption.rotate != null ? layoutOption.rotate * degreeToRadian : defaultLabelAttr.rotation;
       for (let k = 0; k < LABEL_OPTION_TO_STYLE_KEYS.length; k++) {
@@ -19317,28 +19330,23 @@ class LabelManager2 {
     each(this._chartViewList, (chartView) => {
       const seriesModel = chartView.__model;
       const ignoreLabelLineUpdate = chartView.ignoreLabelLineUpdate;
-      if (!ignoreLabelLineUpdate) {
-        chartView.group.traverse((child) => {
-          if (child.ignore) {
-            return true;
-          }
-          this._updateLabelLine(child, seriesModel);
-        });
-      }
-    });
-  }
-  applyAnimation() {
-    each(this._chartViewList, (chartView) => {
-      const seriesModel = chartView.__model;
       const animationEnabled = seriesModel.isAnimationEnabled();
-      if (animationEnabled) {
-        chartView.group.traverse((child) => {
-          if (child.ignore) {
-            return true;
-          }
+      chartView.group.traverse((child) => {
+        if (child.ignore) {
+          return true;
+        }
+        let needsUpdateLabelLine = !ignoreLabelLineUpdate;
+        const label = child.getTextContent();
+        if (!needsUpdateLabelLine && label) {
+          needsUpdateLabelLine = labelLayoutInnerStore(label).changedByUser;
+        }
+        if (needsUpdateLabelLine) {
+          this._updateLabelLine(child, seriesModel);
+        }
+        if (animationEnabled) {
           this._animateLabels(child, seriesModel);
-        });
-      }
+        }
+      });
     });
   }
   _updateLabelLine(el, seriesModel) {
@@ -19364,7 +19372,7 @@ class LabelManager2 {
     const textEl = el.getTextContent();
     const guideLine = el.getTextGuideLine();
     if (textEl && !textEl.ignore && !textEl.invisible) {
-      const layoutStore = labelAnimationStore(textEl);
+      const layoutStore = labelLayoutInnerStore(textEl);
       const oldLayout = layoutStore.oldLayout;
       const newProps = {
         x: textEl.x,
@@ -20034,7 +20042,6 @@ class ECharts extends Eventful2 {
     labelManager.updateLayoutConfig(this._api);
     labelManager.layout(this._api);
     labelManager.processLabelsOverall();
-    labelManager.applyAnimation();
   }
   appendData(params) {
     if (this._disposed) {
@@ -20409,7 +20416,6 @@ ECharts.internalField = function() {
     labelManager.updateLayoutConfig(api);
     labelManager.layout(api);
     labelManager.processLabelsOverall();
-    labelManager.applyAnimation();
     ecModel.eachSeries(function(seriesModel) {
       const chartView = ecIns._chartsMap[seriesModel.__viewId];
       updateStates(seriesModel, chartView);
@@ -24101,18 +24107,18 @@ const EPSILON2 = 1e-08;
 function isAroundEqual2(a, b) {
   return Math.abs(a - b) < EPSILON2;
 }
-function contain2(points9, x, y) {
+function contain2(points11, x, y) {
   let w = 0;
-  let p = points9[0];
+  let p = points11[0];
   if (!p) {
     return false;
   }
-  for (let i = 1; i < points9.length; i++) {
-    const p2 = points9[i];
+  for (let i = 1; i < points11.length; i++) {
+    const p2 = points11[i];
     w += windingLine2(p[0], p[1], p2[0], p2[1], x, y);
     p = p2;
   }
-  const p0 = points9[0];
+  const p0 = points11[0];
   if (!isAroundEqual2(p[0], p0[0]) || !isAroundEqual2(p[1], p0[1])) {
     w += windingLine2(p[0], p[1], p0[0], p0[1], x, y);
   }
@@ -24732,7 +24738,7 @@ LineSeriesModel.defaultOption = {
   smooth: false,
   smoothMonotone: null,
   symbol: "emptyCircle",
-  symbolSize: 4,
+  symbolSize: 6,
   symbolRotate: null,
   showSymbol: true,
   showAllSymbol: "auto",
@@ -24824,16 +24830,15 @@ class Symbol4 extends Group_default {
     this._updateCommon(data, idx, symbolSize, seriesScope);
     if (isInit) {
       const symbolPath = this.childAt(0);
-      const fadeIn = true;
       const target = {
         scaleX: this._sizeX,
-        scaleY: this._sizeY
+        scaleY: this._sizeY,
+        style: {
+          opacity: symbolPath.style.opacity
+        }
       };
-      fadeIn && (target.style = {
-        opacity: symbolPath.style.opacity
-      });
       symbolPath.scaleX = symbolPath.scaleY = 0;
-      fadeIn && (symbolPath.style.opacity = 0);
+      symbolPath.style.opacity = 0;
       initProps(symbolPath, target, seriesModel, idx);
     }
     this._seriesModel = seriesModel;
@@ -25238,15 +25243,15 @@ const cp1 = [];
 function isPointNull(p) {
   return isNaN(p[0]) || isNaN(p[1]);
 }
-function drawSegment(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
-  return (smoothMonotone === "none" || !smoothMonotone ? drawNonMono : drawMono)(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls);
+function drawSegment(ctx, points11, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
+  return (smoothMonotone === "none" || !smoothMonotone ? drawNonMono : drawMono)(ctx, points11, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls);
 }
-function drawMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
+function drawMono(ctx, points11, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
   let prevIdx = 0;
   let idx = start2;
   let k = 0;
   for (; k < segLen; k++) {
-    const p = points9[idx];
+    const p = points11[idx];
     if (idx >= allLen || idx < 0) {
       break;
     }
@@ -25261,7 +25266,7 @@ function drawMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothM
       ctx[dir3 > 0 ? "moveTo" : "lineTo"](p[0], p[1]);
     } else {
       if (smooth > 0) {
-        const prevP = points9[prevIdx];
+        const prevP = points11[prevIdx];
         const dim = smoothMonotone === "y" ? 1 : 0;
         const ctrlLen = (p[dim] - prevP[dim]) * smooth;
         v2Copy(cp0, prevP);
@@ -25278,12 +25283,12 @@ function drawMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothM
   }
   return k;
 }
-function drawNonMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
+function drawNonMono(ctx, points11, start2, segLen, allLen, dir3, smoothMin, smoothMax, smooth, smoothMonotone, connectNulls) {
   let prevIdx = 0;
   let idx = start2;
   let k = 0;
   for (; k < segLen; k++) {
-    const p = points9[idx];
+    const p = points11[idx];
     if (idx >= allLen || idx < 0) {
       break;
     }
@@ -25300,16 +25305,16 @@ function drawNonMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoo
     } else {
       if (smooth > 0) {
         let nextIdx = idx + dir3;
-        let nextP = points9[nextIdx];
+        let nextP = points11[nextIdx];
         if (connectNulls) {
-          while (nextP && isPointNull(points9[nextIdx])) {
+          while (nextP && isPointNull(points11[nextIdx])) {
             nextIdx += dir3;
-            nextP = points9[nextIdx];
+            nextP = points11[nextIdx];
           }
         }
         let ratioNextSeg = 0.5;
-        const prevP = points9[prevIdx];
-        nextP = points9[nextIdx];
+        const prevP = points11[prevIdx];
+        nextP = points11[nextIdx];
         if (!nextP || isPointNull(nextP)) {
           v2Copy(cp1, p);
         } else {
@@ -25345,12 +25350,12 @@ function drawNonMono(ctx, points9, start2, segLen, allLen, dir3, smoothMin, smoo
   }
   return k;
 }
-function getBoundingBox(points9, smoothConstraint) {
+function getBoundingBox(points11, smoothConstraint) {
   const ptMin = [Infinity, Infinity];
   const ptMax = [-Infinity, -Infinity];
   if (smoothConstraint) {
-    for (let i = 0; i < points9.length; i++) {
-      const pt = points9[i];
+    for (let i = 0; i < points11.length; i++) {
+      const pt = points11[i];
       if (pt[0] < ptMin[0]) {
         ptMin[0] = pt[0];
       }
@@ -25392,24 +25397,24 @@ class ECPolyline extends Path_default {
     return new ECPolylineShape();
   }
   buildPath(ctx, shape) {
-    const points9 = shape.points;
+    const points11 = shape.points;
     let i = 0;
-    let len2 = points9.length;
-    const result = getBoundingBox(points9, shape.smoothConstraint);
+    let len2 = points11.length;
+    const result = getBoundingBox(points11, shape.smoothConstraint);
     if (shape.connectNulls) {
       for (; len2 > 0; len2--) {
-        if (!isPointNull(points9[len2 - 1])) {
+        if (!isPointNull(points11[len2 - 1])) {
           break;
         }
       }
       for (; i < len2; i++) {
-        if (!isPointNull(points9[i])) {
+        if (!isPointNull(points11[i])) {
           break;
         }
       }
     }
     while (i < len2) {
-      i += drawSegment(ctx, points9, i, len2, len2, 1, result.min, result.max, shape.smooth, shape.smoothMonotone, shape.connectNulls) + 1;
+      i += drawSegment(ctx, points11, i, len2, len2, 1, result.min, result.max, shape.smooth, shape.smoothMonotone, shape.connectNulls) + 1;
     }
   }
 }
@@ -25424,27 +25429,27 @@ class ECPolygon extends Path_default {
     return new ECPolygonShape();
   }
   buildPath(ctx, shape) {
-    const points9 = shape.points;
+    const points11 = shape.points;
     const stackedOnPoints = shape.stackedOnPoints;
     let i = 0;
-    let len2 = points9.length;
+    let len2 = points11.length;
     const smoothMonotone = shape.smoothMonotone;
-    const bbox6 = getBoundingBox(points9, shape.smoothConstraint);
+    const bbox6 = getBoundingBox(points11, shape.smoothConstraint);
     const stackedOnBBox = getBoundingBox(stackedOnPoints, shape.smoothConstraint);
     if (shape.connectNulls) {
       for (; len2 > 0; len2--) {
-        if (!isPointNull(points9[len2 - 1])) {
+        if (!isPointNull(points11[len2 - 1])) {
           break;
         }
       }
       for (; i < len2; i++) {
-        if (!isPointNull(points9[i])) {
+        if (!isPointNull(points11[i])) {
           break;
         }
       }
     }
     while (i < len2) {
-      const k = drawSegment(ctx, points9, i, len2, len2, 1, bbox6.min, bbox6.max, shape.smooth, smoothMonotone, shape.connectNulls);
+      const k = drawSegment(ctx, points11, i, len2, len2, 1, bbox6.min, bbox6.max, shape.smooth, smoothMonotone, shape.connectNulls);
       drawSegment(ctx, stackedOnPoints, i + k - 1, k, len2, -1, stackedOnBBox.min, stackedOnBBox.max, shape.stackedOnSmooth, smoothMonotone, shape.connectNulls);
       i += k + 1;
       ctx.closePath();
@@ -25550,20 +25555,20 @@ function getStackedOnPoints(coordSys, data, dataCoordInfo) {
   if (!dataCoordInfo.valueDim) {
     return [];
   }
-  const points9 = [];
+  const points11 = [];
   for (let idx = 0, len2 = data.count(); idx < len2; idx++) {
-    points9.push(getStackedOnPoint(dataCoordInfo, coordSys, data, idx));
+    points11.push(getStackedOnPoint(dataCoordInfo, coordSys, data, idx));
   }
-  return points9;
+  return points11;
 }
-function turnPointsIntoStep(points9, coordSys, stepTurnAt) {
+function turnPointsIntoStep(points11, coordSys, stepTurnAt) {
   const baseAxis = coordSys.getBaseAxis();
   const baseIndex = baseAxis.dim === "x" || baseAxis.dim === "radius" ? 0 : 1;
   const stepPoints = [];
   let i = 0;
-  for (; i < points9.length - 1; i++) {
-    const nextPt = points9[i + 1];
-    const pt = points9[i];
+  for (; i < points11.length - 1; i++) {
+    const nextPt = points11[i + 1];
+    const pt = points11[i];
     stepPoints.push(pt);
     const stepPt = [];
     switch (stepTurnAt) {
@@ -25587,7 +25592,7 @@ function turnPointsIntoStep(points9, coordSys, stepTurnAt) {
         stepPoints.push(stepPt);
     }
   }
-  points9[i] && stepPoints.push(points9[i]);
+  points11[i] && stepPoints.push(points11[i]);
   return stepPoints;
 }
 function getVisualGradient(data, coordSys) {
@@ -25725,7 +25730,7 @@ class LineView2 extends Chart_default {
     const data = seriesModel.getData();
     const lineStyleModel = seriesModel.getModel("lineStyle");
     const areaStyleModel = seriesModel.getModel("areaStyle");
-    let points9 = data.mapArray(data.getItemLayout);
+    let points11 = data.mapArray(data.getItemLayout);
     const isCoordSysPolar = coordSys.type === "polar";
     const prevCoordSys = this._coordSys;
     const symbolDraw = this._symbolDraw;
@@ -25771,17 +25776,17 @@ class LineView2 extends Chart_default {
         clipShape: clipShapeForSymbol
       });
       if (step2) {
-        points9 = turnPointsIntoStep(points9, coordSys, step2);
+        points11 = turnPointsIntoStep(points11, coordSys, step2);
         stackedOnPoints = turnPointsIntoStep(stackedOnPoints, coordSys, step2);
       }
-      polyline = this._newPolyline(points9);
+      polyline = this._newPolyline(points11);
       if (isAreaChart) {
-        polygon = this._newPolygon(points9, stackedOnPoints);
+        polygon = this._newPolygon(points11, stackedOnPoints);
       }
       lineGroup.setClipPath(createLineClipPath(coordSys, true, seriesModel));
     } else {
       if (isAreaChart && !polygon) {
-        polygon = this._newPolygon(points9, stackedOnPoints);
+        polygon = this._newPolygon(points11, stackedOnPoints);
       } else if (polygon && !isAreaChart) {
         lineGroup.remove(polygon);
         polygon = this._polygon = null;
@@ -25794,19 +25799,19 @@ class LineView2 extends Chart_default {
       data.eachItemGraphicEl(function(el) {
         el.stopAnimation(true);
       });
-      if (!isPointsSame(this._stackedOnPoints, stackedOnPoints) || !isPointsSame(this._points, points9)) {
+      if (!isPointsSame(this._stackedOnPoints, stackedOnPoints) || !isPointsSame(this._points, points11)) {
         if (hasAnimation) {
           this._updateAnimation(data, stackedOnPoints, coordSys, api, step2, valueOrigin);
         } else {
           if (step2) {
-            points9 = turnPointsIntoStep(points9, coordSys, step2);
+            points11 = turnPointsIntoStep(points11, coordSys, step2);
             stackedOnPoints = turnPointsIntoStep(stackedOnPoints, coordSys, step2);
           }
           polyline.setShape({
-            points: points9
+            points: points11
           });
           polygon && polygon.setShape({
-            points: points9,
+            points: points11,
             stackedOnPoints
           });
         }
@@ -25845,7 +25850,7 @@ class LineView2 extends Chart_default {
     this._data = data;
     this._coordSys = coordSys;
     this._stackedOnPoints = stackedOnPoints;
-    this._points = points9;
+    this._points = points11;
     this._step = step2;
     this._valueOrigin = valueOrigin;
   }
@@ -25895,14 +25900,14 @@ class LineView2 extends Chart_default {
       Chart_default.prototype.downplay.call(this, seriesModel, ecModel, api, payload);
     }
   }
-  _newPolyline(points9) {
+  _newPolyline(points11) {
     let polyline = this._polyline;
     if (polyline) {
       this._lineGroup.remove(polyline);
     }
     polyline = new ECPolyline({
       shape: {
-        points: points9
+        points: points11
       },
       segmentIgnoreThreshold: 2,
       silent: true,
@@ -25912,14 +25917,14 @@ class LineView2 extends Chart_default {
     this._polyline = polyline;
     return polyline;
   }
-  _newPolygon(points9, stackedOnPoints) {
+  _newPolygon(points11, stackedOnPoints) {
     let polygon = this._polygon;
     if (polygon) {
       this._lineGroup.remove(polygon);
     }
     polygon = new ECPolygon({
       shape: {
-        points: points9,
+        points: points11,
         stackedOnPoints
       },
       segmentIgnoreThreshold: 2,
@@ -26046,7 +26051,7 @@ function points_default(seriesType2) {
       return dimLen && {
         progress(params, data2) {
           const segCount = params.end - params.start;
-          const points9 = isLargeRender && new Float32Array(segCount * dimLen);
+          const points11 = isLargeRender && new Float32Array(segCount * dimLen);
           const tmpIn = [];
           const tmpOut = [];
           for (let i = params.start, offset = 0; i < params.end; i++) {
@@ -26060,13 +26065,13 @@ function points_default(seriesType2) {
               point = !isNaN(x) && !isNaN(y) && coordSys.dataToPoint(tmpIn, null, tmpOut);
             }
             if (isLargeRender) {
-              points9[offset++] = point ? point[0] : NaN;
-              points9[offset++] = point ? point[1] : NaN;
+              points11[offset++] = point ? point[0] : NaN;
+              points11[offset++] = point ? point[1] : NaN;
             } else {
               data2.setItemLayout(i, point && point.slice() || [NaN, NaN]);
             }
           }
-          isLargeRender && data2.setLayout("symbolPoints", points9);
+          isLargeRender && data2.setLayout("symbolPoints", points11);
         }
       };
     }
@@ -28614,13 +28619,13 @@ class LargePath extends Path_default {
     return new LagePathShape();
   }
   buildPath(ctx, shape) {
-    const points9 = shape.points;
+    const points11 = shape.points;
     const startPoint = this.__startPoint;
     const baseDimIdx = this.__baseDimIdx;
-    for (let i = 0; i < points9.length; i += 2) {
-      startPoint[baseDimIdx] = points9[i + baseDimIdx];
+    for (let i = 0; i < points11.length; i += 2) {
+      startPoint[baseDimIdx] = points11[i + baseDimIdx];
       ctx.moveTo(startPoint[0], startPoint[1]);
-      ctx.lineTo(points9[i], points9[i + 1]);
+      ctx.lineTo(points11[i], points11[i + 1]);
     }
   }
 }
@@ -28634,12 +28639,12 @@ function createLarge(seriesModel, group, incremental) {
   const backgroundModel = seriesModel.getModel("backgroundStyle");
   const drawBackground = seriesModel.get("showBackground", true);
   if (drawBackground) {
-    const points9 = data.getLayout("largeBackgroundPoints");
+    const points11 = data.getLayout("largeBackgroundPoints");
     const backgroundStartPoint = [];
     backgroundStartPoint[1 - baseDimIdx] = data.getLayout("backgroundStart");
     const bgEl = new LargePath({
       shape: {
-        points: points9
+        points: points11
       },
       incremental: !!incremental,
       silent: true,
@@ -28678,7 +28683,7 @@ const largePathUpdateDataIndex = throttle2(function(event3) {
 function largePathFindDataIndex(largePath, x, y) {
   const baseDimIdx = largePath.__baseDimIdx;
   const valueDimIdx = 1 - baseDimIdx;
-  const points9 = largePath.shape.points;
+  const points11 = largePath.shape.points;
   const largeDataIndices = largePath.__largeDataIndices;
   const barWidthHalf = Math.abs(largePath.__barWidth / 2);
   const startValueVal = largePath.__startPoint[valueDimIdx];
@@ -28688,10 +28693,10 @@ function largePathFindDataIndex(largePath, x, y) {
   const pointerValueVal = _eventPos[1 - baseDimIdx];
   const baseLowerBound = pointerBaseVal - barWidthHalf;
   const baseUpperBound = pointerBaseVal + barWidthHalf;
-  for (let i = 0, len2 = points9.length / 2; i < len2; i++) {
+  for (let i = 0, len2 = points11.length / 2; i < len2; i++) {
     const ii = i * 2;
-    const barBaseVal = points9[ii + baseDimIdx];
-    const barValueVal = points9[ii + valueDimIdx];
+    const barBaseVal = points11[ii + baseDimIdx];
+    const barValueVal = points11[ii + valueDimIdx];
     if (barBaseVal >= baseLowerBound && barBaseVal <= baseUpperBound && (startValueVal <= barValueVal ? pointerValueVal >= startValueVal && pointerValueVal <= barValueVal : pointerValueVal >= barValueVal && pointerValueVal <= startValueVal)) {
       return largeDataIndices[i];
     }
@@ -29693,7 +29698,7 @@ class LargeSymbolPath extends Path_default {
     return new LargeSymbolPathShape();
   }
   buildPath(path2, shape) {
-    const points9 = shape.points;
+    const points11 = shape.points;
     const size = shape.size;
     const symbolProxy = this.symbolProxy;
     const symbolProxyShape = symbolProxy.shape;
@@ -29704,9 +29709,9 @@ class LargeSymbolPath extends Path_default {
       return;
     }
     this._ctx = null;
-    for (let i = 0; i < points9.length; ) {
-      const x = points9[i++];
-      const y = points9[i++];
+    for (let i = 0; i < points11.length; ) {
+      const x = points11[i++];
+      const y = points11[i++];
       if (isNaN(x) || isNaN(y)) {
         continue;
       }
@@ -29722,15 +29727,15 @@ class LargeSymbolPath extends Path_default {
   }
   afterBrush() {
     const shape = this.shape;
-    const points9 = shape.points;
+    const points11 = shape.points;
     const size = shape.size;
     const ctx = this._ctx;
     if (!ctx) {
       return;
     }
-    for (let i = 0; i < points9.length; ) {
-      const x = points9[i++];
-      const y = points9[i++];
+    for (let i = 0; i < points11.length; ) {
+      const x = points11[i++];
+      const y = points11[i++];
       if (isNaN(x) || isNaN(y)) {
         continue;
       }
@@ -29742,14 +29747,14 @@ class LargeSymbolPath extends Path_default {
   }
   findDataIndex(x, y) {
     const shape = this.shape;
-    const points9 = shape.points;
+    const points11 = shape.points;
     const size = shape.size;
     const w = Math.max(size[0], 4);
     const h = Math.max(size[1], 4);
-    for (let idx = points9.length / 2 - 1; idx >= 0; idx--) {
+    for (let idx = points11.length / 2 - 1; idx >= 0; idx--) {
       const i = idx * 2;
-      const x0 = points9[i] - w / 2;
-      const y0 = points9[i + 1] - h / 2;
+      const x0 = points11[i] - w / 2;
+      const y0 = points11[i + 1] - h / 2;
       if (x >= x0 && y >= y0 && x <= x0 + w && y <= y0 + h) {
         return idx;
       }
@@ -29781,14 +29786,14 @@ class LargeSymbolDraw {
     if (this._incremental) {
       return;
     }
-    let points9 = data.getLayout("symbolPoints");
+    let points11 = data.getLayout("symbolPoints");
     this.group.eachChild(function(child) {
       if (child.startIndex != null) {
         const len2 = (child.endIndex - child.startIndex) * 2;
         const byteOffset = child.startIndex * 4 * 2;
-        points9 = new Float32Array(points9.buffer, byteOffset, len2);
+        points11 = new Float32Array(points11.buffer, byteOffset, len2);
       }
-      child.setShape("points", points9);
+      child.setShape("points", points11);
     });
   }
   incrementalPrepareUpdate(data) {
@@ -30310,12 +30315,12 @@ class RadarView4 extends Component_default2 {
       });
       let prevPoints = [];
       for (let i = 0; i <= realSplitNumber; i++) {
-        const points9 = [];
+        const points11 = [];
         for (let j = 0; j < indicatorAxes.length; j++) {
-          points9.push(axesTicksPoints[j][i]);
+          points11.push(axesTicksPoints[j][i]);
         }
-        if (points9[0]) {
-          points9.push(points9[0].slice());
+        if (points11[0]) {
+          points11.push(points11[0].slice());
         } else {
           if (__DEV__) {
             console.error("Can't draw value axis " + i);
@@ -30325,7 +30330,7 @@ class RadarView4 extends Component_default2 {
           const colorIndex = getColorIndex(splitLines, splitLineColorsArr, i);
           splitLines[colorIndex].push(new Polyline_default({
             shape: {
-              points: points9
+              points: points11
             }
           }));
         }
@@ -30333,11 +30338,11 @@ class RadarView4 extends Component_default2 {
           const colorIndex = getColorIndex(splitAreas, splitAreaColorsArr, i - 1);
           splitAreas[colorIndex].push(new Polygon_default({
             shape: {
-              points: points9.concat(prevPoints)
+              points: points11.concat(prevPoints)
             }
           }));
         }
-        prevPoints = points9.slice().reverse();
+        prevPoints = points11.slice().reverse();
       }
     }
     const lineStyle3 = lineStyleModel.getLineStyle();
@@ -30484,25 +30489,25 @@ class RadarView2 extends Chart_default {
         }
       }
     }
-    function getInitialPoints(points9) {
-      return map2(points9, function(pt) {
+    function getInitialPoints(points11) {
+      return map2(points11, function(pt) {
         return [polar2.cx, polar2.cy];
       });
     }
     data.diff(oldData).add(function(idx) {
-      const points9 = data.getItemLayout(idx);
-      if (!points9) {
+      const points11 = data.getItemLayout(idx);
+      if (!points11) {
         return;
       }
       const polygon = new Polygon_default();
       const polyline = new Polyline_default();
       const target = {
         shape: {
-          points: points9
+          points: points11
         }
       };
-      polygon.shape.points = getInitialPoints(points9);
-      polyline.shape.points = getInitialPoints(points9);
+      polygon.shape.points = getInitialPoints(points11);
+      polyline.shape.points = getInitialPoints(points11);
       initProps(polygon, target, seriesModel, idx);
       initProps(polyline, target, seriesModel, idx);
       const itemGroup = new Group_default();
@@ -30510,7 +30515,7 @@ class RadarView2 extends Chart_default {
       itemGroup.add(polyline);
       itemGroup.add(polygon);
       itemGroup.add(symbolGroup);
-      updateSymbols(polyline.shape.points, points9, symbolGroup, data, idx, true);
+      updateSymbols(polyline.shape.points, points11, symbolGroup, data, idx, true);
       data.setItemGraphicEl(idx, itemGroup);
     }).update(function(newIdx, oldIdx) {
       const itemGroup = oldData.getItemGraphicEl(oldIdx);
@@ -30595,7 +30600,7 @@ Chart_default.registerClass(RadarView2);
 function radarLayout_default(ecModel) {
   ecModel.eachSeriesByType("radar", function(seriesModel) {
     const data = seriesModel.getData();
-    const points9 = [];
+    const points11 = [];
     const coordSys = seriesModel.coordinateSystem;
     if (!coordSys) {
       return;
@@ -30603,17 +30608,17 @@ function radarLayout_default(ecModel) {
     const axes = coordSys.getIndicatorAxes();
     each(axes, function(axis2, axisIndex) {
       data.each(data.mapDimension(axes[axisIndex].dim), function(val, dataIndex) {
-        points9[dataIndex] = points9[dataIndex] || [];
+        points11[dataIndex] = points11[dataIndex] || [];
         const point = coordSys.dataToPoint(val, axisIndex);
-        points9[dataIndex][axisIndex] = isValidPoint(point) ? point : getValueMissingPoint(coordSys);
+        points11[dataIndex][axisIndex] = isValidPoint(point) ? point : getValueMissingPoint(coordSys);
       });
     });
     data.each(function(idx) {
-      const firstPoint = find(points9[idx], function(point) {
+      const firstPoint = find(points11[idx], function(point) {
         return isValidPoint(point);
       }) || getValueMissingPoint(coordSys);
-      points9[idx].push(firstPoint.slice());
-      data.setItemLayout(idx, points9[idx]);
+      points11[idx].push(firstPoint.slice());
+      data.setItemLayout(idx, points11[idx]);
     });
   });
 }
@@ -30662,18 +30667,18 @@ registerPreprocessor(backwardCompat_default2);
 
 // src/coord/geo/fix/nanhai.ts
 const geoCoord = [126, 25];
-const points8 = [[[0, 3.5], [7, 11.2], [15, 11.9], [30, 7], [42, 0.7], [52, 0.7], [56, 7.7], [59, 0.7], [64, 0.7], [64, 0], [5, 0], [0, 3.5]], [[13, 16.1], [19, 14.7], [16, 21.7], [11, 23.1], [13, 16.1]], [[12, 32.2], [14, 38.5], [15, 38.5], [13, 32.2], [12, 32.2]], [[16, 47.6], [12, 53.2], [13, 53.2], [18, 47.6], [16, 47.6]], [[6, 64.4], [8, 70], [9, 70], [8, 64.4], [6, 64.4]], [[23, 82.6], [29, 79.8], [30, 79.8], [25, 82.6], [23, 82.6]], [[37, 70.7], [43, 62.3], [44, 62.3], [39, 70.7], [37, 70.7]], [[48, 51.1], [51, 45.5], [53, 45.5], [50, 51.1], [48, 51.1]], [[51, 35], [51, 28.7], [53, 28.7], [53, 35], [51, 35]], [[52, 22.4], [55, 17.5], [56, 17.5], [53, 22.4], [52, 22.4]], [[58, 12.6], [62, 7], [63, 7], [60, 12.6], [58, 12.6]], [[0, 3.5], [0, 93.1], [64, 93.1], [64, 0], [63, 0], [63, 92.4], [1, 92.4], [1, 3.5], [0, 3.5]]];
-for (let i = 0; i < points8.length; i++) {
-  for (let k = 0; k < points8[i].length; k++) {
-    points8[i][k][0] /= 10.5;
-    points8[i][k][1] /= -10.5 / 0.75;
-    points8[i][k][0] += geoCoord[0];
-    points8[i][k][1] += geoCoord[1];
+const points10 = [[[0, 3.5], [7, 11.2], [15, 11.9], [30, 7], [42, 0.7], [52, 0.7], [56, 7.7], [59, 0.7], [64, 0.7], [64, 0], [5, 0], [0, 3.5]], [[13, 16.1], [19, 14.7], [16, 21.7], [11, 23.1], [13, 16.1]], [[12, 32.2], [14, 38.5], [15, 38.5], [13, 32.2], [12, 32.2]], [[16, 47.6], [12, 53.2], [13, 53.2], [18, 47.6], [16, 47.6]], [[6, 64.4], [8, 70], [9, 70], [8, 64.4], [6, 64.4]], [[23, 82.6], [29, 79.8], [30, 79.8], [25, 82.6], [23, 82.6]], [[37, 70.7], [43, 62.3], [44, 62.3], [39, 70.7], [37, 70.7]], [[48, 51.1], [51, 45.5], [53, 45.5], [50, 51.1], [48, 51.1]], [[51, 35], [51, 28.7], [53, 28.7], [53, 35], [51, 35]], [[52, 22.4], [55, 17.5], [56, 17.5], [53, 22.4], [52, 22.4]], [[58, 12.6], [62, 7], [63, 7], [60, 12.6], [58, 12.6]], [[0, 3.5], [0, 93.1], [64, 93.1], [64, 0], [63, 0], [63, 92.4], [1, 92.4], [1, 3.5], [0, 3.5]]];
+for (let i = 0; i < points10.length; i++) {
+  for (let k = 0; k < points10[i].length; k++) {
+    points10[i][k][0] /= 10.5;
+    points10[i][k][1] /= -10.5 / 0.75;
+    points10[i][k][0] += geoCoord[0];
+    points10[i][k][1] += geoCoord[1];
   }
 }
 function nanhai_default(mapType, regions) {
   if (mapType === "china") {
-    regions.push(new Region_default("南海诸岛", map2(points8, function(exterior) {
+    regions.push(new Region_default("南海诸岛", map2(points10, function(exterior) {
       return {
         type: "polygon",
         exterior
@@ -30719,12 +30724,12 @@ function geoCoord_default(mapType, region) {
 }
 
 // src/coord/geo/fix/diaoyuIsland.ts
-const points7 = [[[123.45165252685547, 25.73527164402261], [123.49731445312499, 25.73527164402261], [123.49731445312499, 25.750734064600884], [123.45165252685547, 25.750734064600884], [123.45165252685547, 25.73527164402261]]];
+const points9 = [[[123.45165252685547, 25.73527164402261], [123.49731445312499, 25.73527164402261], [123.49731445312499, 25.750734064600884], [123.45165252685547, 25.750734064600884], [123.45165252685547, 25.73527164402261]]];
 function diaoyuIsland_default(mapType, region) {
   if (mapType === "china" && region.name === "台湾") {
     region.geometries.push({
       type: "polygon",
-      exterior: points7[0]
+      exterior: points9[0]
     });
   }
 }
@@ -31372,26 +31377,26 @@ class MapDraw3 {
         if (geometry.type !== "polygon") {
           return;
         }
-        const points9 = [];
+        const points11 = [];
         for (let i = 0; i < geometry.exterior.length; ++i) {
-          points9.push(transformPoint(geometry.exterior[i]));
+          points11.push(transformPoint(geometry.exterior[i]));
         }
         compoundPath.shape.paths.push(new Polygon_default({
           segmentIgnoreThreshold: 1,
           shape: {
-            points: points9
+            points: points11
           }
         }));
         for (let i = 0; i < (geometry.interiors ? geometry.interiors.length : 0); ++i) {
           const interior = geometry.interiors[i];
-          const points10 = [];
+          const points12 = [];
           for (let j = 0; j < interior.length; ++j) {
-            points10.push(transformPoint(interior[j]));
+            points12.push(transformPoint(interior[j]));
           }
           compoundPath.shape.paths.push(new Polygon_default({
             segmentIgnoreThreshold: 1,
             shape: {
-              points: points10
+              points: points12
             }
           }));
         }
@@ -32887,16 +32892,16 @@ class TreeView2 extends Chart_default {
   }
   _updateViewCoordSys(seriesModel) {
     const data = seriesModel.getData();
-    const points9 = [];
+    const points11 = [];
     data.each(function(idx) {
       const layout33 = data.getItemLayout(idx);
       if (layout33 && !isNaN(layout33.x) && !isNaN(layout33.y)) {
-        points9.push([+layout33.x, +layout33.y]);
+        points11.push([+layout33.x, +layout33.y]);
       }
     });
     const min4 = [];
     const max4 = [];
-    fromPoints(points9, min4, max4);
+    fromPoints(points11, min4, max4);
     const oldMin = this._min;
     const oldMax = this._max;
     if (max4[0] - min4[0] === 0) {
@@ -33782,10 +33787,10 @@ class Breadcrumb {
   }
 }
 function makeItemPoints(x, y, itemWidth, itemHeight, head, tail) {
-  const points9 = [[head ? x : x - ARRAY_LENGTH, y], [x + itemWidth, y], [x + itemWidth, y + itemHeight], [head ? x : x - ARRAY_LENGTH, y + itemHeight]];
-  !tail && points9.splice(2, 0, [x + itemWidth + ARRAY_LENGTH, y + itemHeight / 2]);
-  !head && points9.push([x, y + itemHeight / 2]);
-  return points9;
+  const points11 = [[head ? x : x - ARRAY_LENGTH, y], [x + itemWidth, y], [x + itemWidth, y + itemHeight], [head ? x : x - ARRAY_LENGTH, y + itemHeight]];
+  !tail && points11.splice(2, 0, [x + itemWidth + ARRAY_LENGTH, y + itemHeight / 2]);
+  !head && points11.push([x, y + itemHeight / 2]);
+  return points11;
 }
 function packEventData(el, seriesModel, itemNode) {
   getECData(el).eventData = {
@@ -35878,21 +35883,21 @@ function createSymbol2(name2, lineData, idx) {
   symbolPath.name = name2;
   return symbolPath;
 }
-function createLine(points9) {
+function createLine(points11) {
   const line3 = new LinePath_default({
     name: "line",
     subPixelOptimize: true
   });
-  setLinePoints(line3.shape, points9);
+  setLinePoints(line3.shape, points11);
   return line3;
 }
-function setLinePoints(targetShape, points9) {
-  targetShape.x1 = points9[0][0];
-  targetShape.y1 = points9[0][1];
-  targetShape.x2 = points9[1][0];
-  targetShape.y2 = points9[1][1];
+function setLinePoints(targetShape, points11) {
+  targetShape.x1 = points11[0][0];
+  targetShape.y1 = points11[0][1];
+  targetShape.x2 = points11[1][0];
+  targetShape.y2 = points11[1][1];
   targetShape.percent = 1;
-  const cp12 = points9[2];
+  const cp12 = points11[2];
   if (cp12) {
     targetShape.cpx1 = cp12[0];
     targetShape.cpy1 = cp12[1];
@@ -36033,9 +36038,9 @@ class Line6 extends Group_default {
   updateLayout(lineData, idx) {
     this.setLinePoints(lineData.getItemLayout(idx));
   }
-  setLinePoints(points9) {
+  setLinePoints(points11) {
     const linePath = this.childOfName("line");
-    setLinePoints(linePath.shape, points9);
+    setLinePoints(linePath.shape, points11);
     linePath.dirty();
   }
   beforeUpdate() {
@@ -36893,11 +36898,11 @@ function simpleLayoutEdge(graph2) {
     const curveness = edge.getModel().get(["lineStyle", "curveness"]) || 0;
     const p1 = clone3(edge.node1.getLayout());
     const p2 = clone3(edge.node2.getLayout());
-    const points9 = [p1, p2];
+    const points11 = [p1, p2];
     if (+curveness) {
-      points9.push([(p1[0] + p2[0]) / 2 - (p1[1] - p2[1]) * curveness, (p1[1] + p2[1]) / 2 - (p2[0] - p1[0]) * curveness]);
+      points11.push([(p1[0] + p2[0]) / 2 - (p1[1] - p2[1]) * curveness, (p1[1] + p2[1]) / 2 - (p2[0] - p1[0]) * curveness]);
     }
-    edge.setLayout(points9);
+    edge.setLayout(points11);
   });
 }
 
@@ -37201,16 +37206,16 @@ function forceLayout_default(ecModel) {
           const edge = graph2.getEdgeByIndex(i);
           const p1 = e.n1.p;
           const p2 = e.n2.p;
-          let points9 = edge.getLayout();
-          points9 = points9 ? points9.slice() : [];
-          points9[0] = points9[0] || [];
-          points9[1] = points9[1] || [];
-          copy2(points9[0], p1);
-          copy2(points9[1], p2);
+          let points11 = edge.getLayout();
+          points11 = points11 ? points11.slice() : [];
+          points11[0] = points11[0] || [];
+          points11[1] = points11[1] || [];
+          copy2(points11[0], p1);
+          copy2(points11[1], p2);
           if (+e.curveness) {
-            points9[2] = [(p1[0] + p2[0]) / 2 - (p1[1] - p2[1]) * e.curveness, (p1[1] + p2[1]) / 2 - (p2[0] - p1[0]) * e.curveness];
+            points11[2] = [(p1[0] + p2[0]) / 2 - (p1[1] - p2[1]) * e.curveness, (p1[1] + p2[1]) / 2 - (p2[0] - p1[0]) * e.curveness];
           }
-          edge.setLayout(points9);
+          edge.setLayout(points11);
         }
       });
       graphSeries.forceLayout = forceInstance;
@@ -37849,9 +37854,13 @@ class FunnelPiece extends Polygon_default {
       insideStroke: visualColor,
       outsideFill: visualColor
     });
+    const linePoints = labelLayout3.linePoints;
     labelLine.setShape({
-      points: labelLayout3.linePoints || labelLayout3.linePoints
+      points: linePoints
     });
+    polygon.textGuideLineConfig = {
+      anchor: linePoints ? new Point4(linePoints[0][0], linePoints[0][1]) : null
+    };
     updateProps(labelText, {
       style: {
         x: labelLayout3.x,
@@ -37940,7 +37949,7 @@ function labelLayout(data) {
     const labelPosition = labelModel.get("position");
     const labelLineModel = itemModel.getModel("labelLine");
     const layout33 = data.getItemLayout(idx);
-    const points9 = layout33.points;
+    const points11 = layout33.points;
     const isLabelInside = labelPosition === "inner" || labelPosition === "inside" || labelPosition === "center" || labelPosition === "insideLeft" || labelPosition === "insideRight";
     let textAlign;
     let textX;
@@ -37948,16 +37957,16 @@ function labelLayout(data) {
     let linePoints;
     if (isLabelInside) {
       if (labelPosition === "insideLeft") {
-        textX = (points9[0][0] + points9[3][0]) / 2 + 5;
-        textY = (points9[0][1] + points9[3][1]) / 2;
+        textX = (points11[0][0] + points11[3][0]) / 2 + 5;
+        textY = (points11[0][1] + points11[3][1]) / 2;
         textAlign = "left";
       } else if (labelPosition === "insideRight") {
-        textX = (points9[1][0] + points9[2][0]) / 2 - 5;
-        textY = (points9[1][1] + points9[2][1]) / 2;
+        textX = (points11[1][0] + points11[2][0]) / 2 - 5;
+        textY = (points11[1][1] + points11[2][1]) / 2;
         textAlign = "right";
       } else {
-        textX = (points9[0][0] + points9[1][0] + points9[2][0] + points9[3][0]) / 4;
-        textY = (points9[0][1] + points9[1][1] + points9[2][1] + points9[3][1]) / 4;
+        textX = (points11[0][0] + points11[1][0] + points11[2][0] + points11[3][0]) / 4;
+        textY = (points11[0][1] + points11[1][1] + points11[2][1] + points11[3][1]) / 4;
         textAlign = "center";
       }
       linePoints = [[textX, textY], [textX, textY]];
@@ -37967,44 +37976,44 @@ function labelLayout(data) {
       let x2;
       const labelLineLen = labelLineModel.get("length");
       if (labelPosition === "left") {
-        x1 = (points9[3][0] + points9[0][0]) / 2;
-        y1 = (points9[3][1] + points9[0][1]) / 2;
+        x1 = (points11[3][0] + points11[0][0]) / 2;
+        y1 = (points11[3][1] + points11[0][1]) / 2;
         x2 = x1 - labelLineLen;
         textX = x2 - 5;
         textAlign = "right";
       } else if (labelPosition === "right") {
-        x1 = (points9[1][0] + points9[2][0]) / 2;
-        y1 = (points9[1][1] + points9[2][1]) / 2;
+        x1 = (points11[1][0] + points11[2][0]) / 2;
+        y1 = (points11[1][1] + points11[2][1]) / 2;
         x2 = x1 + labelLineLen;
         textX = x2 + 5;
         textAlign = "left";
       } else if (labelPosition === "rightTop") {
-        x1 = points9[1][0];
-        y1 = points9[1][1];
+        x1 = points11[1][0];
+        y1 = points11[1][1];
         x2 = x1 + labelLineLen;
         textX = x2 + 5;
         textAlign = "top";
       } else if (labelPosition === "rightBottom") {
-        x1 = points9[2][0];
-        y1 = points9[2][1];
+        x1 = points11[2][0];
+        y1 = points11[2][1];
         x2 = x1 + labelLineLen;
         textX = x2 + 5;
         textAlign = "bottom";
       } else if (labelPosition === "leftTop") {
-        x1 = points9[0][0];
-        y1 = points9[1][1];
+        x1 = points11[0][0];
+        y1 = points11[1][1];
         x2 = x1 - labelLineLen;
         textX = x2 - 5;
         textAlign = "right";
       } else if (labelPosition === "leftBottom") {
-        x1 = points9[3][0];
-        y1 = points9[2][1];
+        x1 = points11[3][0];
+        y1 = points11[2][1];
         x2 = x1 - labelLineLen;
         textX = x2 - 5;
         textAlign = "right";
       } else {
-        x1 = (points9[1][0] + points9[2][0]) / 2;
-        y1 = (points9[1][1] + points9[2][1]) / 2;
+        x1 = (points11[1][0] + points11[2][0]) / 2;
+        y1 = (points11[1][1] + points11[2][1]) / 2;
         x2 = x1 + labelLineLen;
         textX = x2 + 5;
         textAlign = "left";
@@ -39058,11 +39067,11 @@ function clipByPanel(controller, cover, data) {
   const panel = getPanelByCover(controller, cover);
   return panel && panel !== BRUSH_PANEL_GLOBAL ? panel.clipPath(data, controller._transform) : clone2(data);
 }
-function pointsToRect(points9) {
-  const xmin = mathMin6(points9[0][0], points9[1][0]);
-  const ymin = mathMin6(points9[0][1], points9[1][1]);
-  const xmax = mathMax6(points9[0][0], points9[1][0]);
-  const ymax = mathMax6(points9[0][1], points9[1][1]);
+function pointsToRect(points11) {
+  const xmin = mathMin6(points11[0][0], points11[1][0]);
+  const ymin = mathMin6(points11[0][1], points11[1][1]);
+  const xmax = mathMax6(points11[0][0], points11[1][0]);
+  const ymax = mathMax6(points11[0][1], points11[1][1]);
   return {
     x: xmin,
     y: ymin,
@@ -39592,12 +39601,12 @@ class ParallelView2 extends Chart_default {
     }
     function update(newDataIndex, oldDataIndex) {
       const line3 = oldData.getItemGraphicEl(oldDataIndex);
-      const points9 = createLinePoints(data, newDataIndex, dimensions, coordSys);
+      const points11 = createLinePoints(data, newDataIndex, dimensions, coordSys);
       data.setItemGraphicEl(newDataIndex, line3);
       const animationModel = payload && payload.animation === false ? null : seriesModel;
       updateProps(line3, {
         shape: {
-          points: points9
+          points: points11
         }
       }, animationModel, newDataIndex);
       updateElCommon(line3, data, newDataIndex, seriesScope);
@@ -39661,21 +39670,21 @@ function createGridClipShape(coordSys, seriesModel, cb) {
   return rectEl;
 }
 function createLinePoints(data, dataIndex, dimensions, coordSys) {
-  const points9 = [];
+  const points11 = [];
   for (let i = 0; i < dimensions.length; i++) {
     const dimName = dimensions[i];
     const value = data.get(data.mapDimension(dimName), dataIndex);
     if (!isEmptyValue(value, coordSys.getAxis(dimName).type)) {
-      points9.push(coordSys.dataToPoint(value, dimName));
+      points11.push(coordSys.dataToPoint(value, dimName));
     }
   }
-  return points9;
+  return points11;
 }
 function addEl(data, dataGroup, dataIndex, dimensions, coordSys) {
-  const points9 = createLinePoints(data, dataIndex, dimensions, coordSys);
+  const points11 = createLinePoints(data, dataIndex, dimensions, coordSys);
   const line3 = new Polyline_default({
     shape: {
-      points: points9
+      points: points11
     },
     silent: true,
     z2: 10
@@ -40905,8 +40914,8 @@ function updateNormalBoxData(itemLayout, el, data, dataIndex, isInit) {
   const hoverStyle = itemModel.getModel(EMPHASIS_ITEM_STYLE_PATH).getItemStyle();
   enableHoverEmphasis(el, hoverStyle);
 }
-function transInit(points9, dim, itemLayout) {
-  return map2(points9, function(point) {
+function transInit(points11, dim, itemLayout) {
+  return map2(points11, function(point) {
     point = point.slice();
     point[dim] = itemLayout.initBaseline;
     return point;
@@ -41290,8 +41299,8 @@ function setBoxCommon(el, data, dataIndex, isSimpleBox) {
   const hoverStyle = itemModel.getModel(EMPHASIS_ITEM_STYLE_PATH2).getItemStyle();
   enableHoverEmphasis(el, hoverStyle);
 }
-function transInit2(points9, itemLayout) {
-  return map2(points9, function(point) {
+function transInit2(points11, itemLayout) {
+  return map2(points11, function(point) {
     point = point.slice();
     point[1] = itemLayout.initBaseline;
     return point;
@@ -41308,12 +41317,12 @@ class LargeBoxPath extends Path_default {
     return new LargeBoxPathShape();
   }
   buildPath(ctx, shape) {
-    const points9 = shape.points;
-    for (let i = 0; i < points9.length; ) {
-      if (this.__sign === points9[i++]) {
-        const x = points9[i++];
-        ctx.moveTo(x, points9[i++]);
-        ctx.lineTo(x, points9[i++]);
+    const points11 = shape.points;
+    for (let i = 0; i < points11.length; ) {
+      if (this.__sign === points11[i++]) {
+        const x = points11[i++];
+        ctx.moveTo(x, points11[i++]);
+        ctx.lineTo(x, points11[i++]);
       } else {
         i += 3;
       }
@@ -41488,7 +41497,7 @@ const candlestickLayout3 = {
       }
     }
     function largeProgress(params, data2) {
-      const points9 = new LargeArr(params.count * 4);
+      const points11 = new LargeArr(params.count * 4);
       let offset = 0;
       let point;
       const tmpIn = [];
@@ -41501,21 +41510,21 @@ const candlestickLayout3 = {
         const lowestVal = data2.get(lowestDim, dataIndex);
         const highestVal = data2.get(highestDim, dataIndex);
         if (isNaN(axisDimVal) || isNaN(lowestVal) || isNaN(highestVal)) {
-          points9[offset++] = NaN;
+          points11[offset++] = NaN;
           offset += 3;
           continue;
         }
-        points9[offset++] = getSign(data2, dataIndex, openVal, closeVal, closeDim);
+        points11[offset++] = getSign(data2, dataIndex, openVal, closeVal, closeDim);
         tmpIn[cDimIdx] = axisDimVal;
         tmpIn[vDimIdx] = lowestVal;
         point = coordSys.dataToPoint(tmpIn, null, tmpOut);
-        points9[offset++] = point ? point[0] : NaN;
-        points9[offset++] = point ? point[1] : NaN;
+        points11[offset++] = point ? point[0] : NaN;
+        points11[offset++] = point ? point[1] : NaN;
         tmpIn[vDimIdx] = highestVal;
         point = coordSys.dataToPoint(tmpIn, null, tmpOut);
-        points9[offset++] = point ? point[1] : NaN;
+        points11[offset++] = point ? point[1] : NaN;
       }
-      data2.setLayout("largePoints", points9);
+      data2.setLayout("largePoints", points11);
     }
   }
 };
@@ -42051,7 +42060,7 @@ class EffectLine extends Group_default {
       return;
     }
     const self2 = this;
-    const points9 = lineData.getItemLayout(idx);
+    const points11 = lineData.getItemLayout(idx);
     let period = effectModel.get("period") * 1000;
     const loop = effectModel.get("loop");
     const constantSpeed = effectModel.get("constantSpeed");
@@ -42059,7 +42068,7 @@ class EffectLine extends Group_default {
       return idx2 / lineData.count() * period / 3;
     });
     symbol12.ignore = true;
-    this._updateAnimationPoints(symbol12, points9);
+    this._updateAnimationPoints(symbol12, points11);
     if (constantSpeed > 0) {
       period = this._getLineLength(symbol12) / constantSpeed * 1000;
     }
@@ -42095,10 +42104,10 @@ class EffectLine extends Group_default {
   _getLineLength(symbol12) {
     return dist(symbol12.__p1, symbol12.__cp1) + dist(symbol12.__cp1, symbol12.__p2);
   }
-  _updateAnimationPoints(symbol12, points9) {
-    symbol12.__p1 = points9[0];
-    symbol12.__p2 = points9[1];
-    symbol12.__cp1 = points9[2] || [(points9[0][0] + points9[1][0]) / 2, (points9[0][1] + points9[1][1]) / 2];
+  _updateAnimationPoints(symbol12, points11) {
+    symbol12.__p1 = points11[0];
+    symbol12.__p2 = points11[1];
+    symbol12.__cp1 = points11[2] || [(points11[0][0] + points11[1][0]) / 2, (points11[0][1] + points11[1][1]) / 2];
   }
   updateData(lineData, idx, seriesScope) {
     this.childAt(0).updateData(lineData, idx, seriesScope);
@@ -42151,10 +42160,10 @@ class Polyline7 extends Group_default {
     this._createPolyline(lineData, idx, seriesScope);
   }
   _createPolyline(lineData, idx, seriesScope) {
-    const points9 = lineData.getItemLayout(idx);
+    const points11 = lineData.getItemLayout(idx);
     const line3 = new Polyline_default({
       shape: {
-        points: points9
+        points: points11
       }
     });
     this.add(line3);
@@ -42201,13 +42210,13 @@ class EffectPolyline extends EffectLine_default {
   createLine(lineData, idx, seriesScope) {
     return new Polyline_default2(lineData, idx, seriesScope);
   }
-  _updateAnimationPoints(symbol12, points9) {
-    this._points = points9;
+  _updateAnimationPoints(symbol12, points11) {
+    this._points = points11;
     const accLenArr = [0];
     let len2 = 0;
-    for (let i = 1; i < points9.length; i++) {
-      const p1 = points9[i - 1];
-      const p2 = points9[i];
+    for (let i = 1; i < points11.length; i++) {
+      const p1 = points11[i - 1];
+      const p2 = points11[i];
       len2 += dist(p1, p2);
       accLenArr.push(len2);
     }
@@ -42226,9 +42235,9 @@ class EffectPolyline extends EffectLine_default {
   }
   _updateSymbolPosition(symbol12) {
     const t = symbol12.__t;
-    const points9 = this._points;
+    const points11 = this._points;
     const offsets = this._offsets;
-    const len2 = points9.length;
+    const len2 = points11.length;
     if (!offsets) {
       return;
     }
@@ -42251,8 +42260,8 @@ class EffectPolyline extends EffectLine_default {
       frame = Math.min(frame - 1, len2 - 2);
     }
     const p = (t - offsets[frame]) / (offsets[frame + 1] - offsets[frame]);
-    const p0 = points9[frame];
-    const p1 = points9[frame + 1];
+    const p0 = points11[frame];
+    const p1 = points11[frame + 1];
     symbol12.x = p0[0] * (1 - p) + p * p1[0];
     symbol12.y = p0[1] * (1 - p) + p * p1[1];
     const tx = p1[0] - p0[0];
@@ -42462,31 +42471,31 @@ const linesLayout3 = {
       progress(params, lineData) {
         const lineCoords = [];
         if (isLarge) {
-          let points9;
+          let points11;
           const segCount = params.end - params.start;
           if (isPolyline) {
             let totalCoordsCount = 0;
             for (let i = params.start; i < params.end; i++) {
               totalCoordsCount += seriesModel.getLineCoordsCount(i);
             }
-            points9 = new Float32Array(segCount + totalCoordsCount * 2);
+            points11 = new Float32Array(segCount + totalCoordsCount * 2);
           } else {
-            points9 = new Float32Array(segCount * 4);
+            points11 = new Float32Array(segCount * 4);
           }
           let offset = 0;
           let pt = [];
           for (let i = params.start; i < params.end; i++) {
             const len2 = seriesModel.getLineCoords(i, lineCoords);
             if (isPolyline) {
-              points9[offset++] = len2;
+              points11[offset++] = len2;
             }
             for (let k = 0; k < len2; k++) {
               pt = coordSys.dataToPoint(lineCoords[k], false, pt);
-              points9[offset++] = pt[0];
-              points9[offset++] = pt[1];
+              points11[offset++] = pt[0];
+              points11[offset++] = pt[1];
             }
           }
-          lineData.setLayout("linesPoints", points9);
+          lineData.setLayout("linesPoints", points11);
         } else {
           for (let i = params.start; i < params.end; i++) {
             const itemModel = lineData.getItemModel(i);
@@ -42971,7 +42980,7 @@ class HeatmapView2 extends Chart_default {
     const width = x2 - x;
     const height = y2 - y;
     const dims = [data.mapDimension("lng"), data.mapDimension("lat"), data.mapDimension("value")];
-    const points9 = data.mapArray(dims, function(lng, lat, value) {
+    const points11 = data.mapArray(dims, function(lng, lat, value) {
       const pt = geo2.dataToPoint([lng, lat]);
       pt[0] -= x;
       pt[1] -= y;
@@ -42980,7 +42989,7 @@ class HeatmapView2 extends Chart_default {
     });
     const dataExtent = visualMapModel.getExtent();
     const isInRange = visualMapModel.type === "visualMap.continuous" ? getIsInContinuousRange(dataExtent, visualMapModel.option.range) : getIsInPiecewiseRange(dataExtent, visualMapModel.getPieceList(), visualMapModel.option.selected);
-    hmLayer.update(points9, width, height, inRangeVisuals.color.getNormalizer(), {
+    hmLayer.update(points11, width, height, inRangeVisuals.color.getNormalizer(), {
       inRange: inRangeVisuals.color.getColorMapper(),
       outOfRange: outOfRangeVisuals.color.getColorMapper()
     }, isInRange);
@@ -48847,26 +48856,26 @@ class CalendarView2 extends Component_default2 {
     function addPoints(date) {
       self2._firstDayOfMonth.push(coordSys.getDateInfo(date));
       self2._firstDayPoints.push(coordSys.dataToRect([date], false).tl);
-      const points9 = self2._getLinePointsOfOneWeek(calendarModel, date, orient);
-      self2._tlpoints.push(points9[0]);
-      self2._blpoints.push(points9[points9.length - 1]);
-      show && self2._drawSplitline(points9, lineStyleModel, group);
+      const points11 = self2._getLinePointsOfOneWeek(calendarModel, date, orient);
+      self2._tlpoints.push(points11[0]);
+      self2._blpoints.push(points11[points11.length - 1]);
+      show && self2._drawSplitline(points11, lineStyleModel, group);
     }
     show && this._drawSplitline(self2._getEdgesPoints(self2._tlpoints, lineWidth, orient), lineStyleModel, group);
     show && this._drawSplitline(self2._getEdgesPoints(self2._blpoints, lineWidth, orient), lineStyleModel, group);
   }
-  _getEdgesPoints(points9, lineWidth, orient) {
-    const rs = [points9[0].slice(), points9[points9.length - 1].slice()];
+  _getEdgesPoints(points11, lineWidth, orient) {
+    const rs = [points11[0].slice(), points11[points11.length - 1].slice()];
     const idx = orient === "horizontal" ? 0 : 1;
     rs[0][idx] = rs[0][idx] - lineWidth / 2;
     rs[1][idx] = rs[1][idx] + lineWidth / 2;
     return rs;
   }
-  _drawSplitline(points9, lineStyle3, group) {
+  _drawSplitline(points11, lineStyle3, group) {
     const poyline = new Polyline_default({
       z2: 20,
       shape: {
-        points: points9
+        points: points11
       },
       style: lineStyle3
     });
@@ -48875,14 +48884,14 @@ class CalendarView2 extends Component_default2 {
   _getLinePointsOfOneWeek(calendarModel, date, orient) {
     const coordSys = calendarModel.coordinateSystem;
     const parsedDate = coordSys.getDateInfo(date);
-    const points9 = [];
+    const points11 = [];
     for (let i = 0; i < 7; i++) {
       const tmpD = coordSys.getNextNDay(parsedDate.time, i);
       const point = coordSys.dataToRect([tmpD.time], false);
-      points9[2 * tmpD.day] = point.tl;
-      points9[2 * tmpD.day + 1] = point[orient === "horizontal" ? "bl" : "tr"];
+      points11[2 * tmpD.day] = point.tl;
+      points11[2 * tmpD.day + 1] = point[orient === "horizontal" ? "bl" : "tr"];
     }
-    return points9;
+    return points11;
   }
   _formatterLabel(formatter, params) {
     if (typeof formatter === "string" && formatter) {
@@ -48932,15 +48941,15 @@ class CalendarView2 extends Component_default2 {
     if (!pos) {
       pos = orient !== "horizontal" ? "top" : "left";
     }
-    const points9 = [this._tlpoints[this._tlpoints.length - 1], this._blpoints[0]];
-    const xc = (points9[0][0] + points9[1][0]) / 2;
-    const yc = (points9[0][1] + points9[1][1]) / 2;
+    const points11 = [this._tlpoints[this._tlpoints.length - 1], this._blpoints[0]];
+    const xc = (points11[0][0] + points11[1][0]) / 2;
+    const yc = (points11[0][1] + points11[1][1]) / 2;
     const idx = orient === "horizontal" ? 0 : 1;
     const posPoints = {
-      top: [xc, points9[idx][1]],
-      bottom: [xc, points9[1 - idx][1]],
-      left: [points9[1 - idx][0], yc],
-      right: [points9[idx][0], yc]
+      top: [xc, points11[idx][1]],
+      bottom: [xc, points11[1 - idx][1]],
+      left: [points11[1 - idx][0], yc],
+      right: [points11[idx][0], yc]
     };
     let name2 = rangeData.start.y;
     if (+rangeData.end.y > +rangeData.start.y) {
@@ -52541,16 +52550,16 @@ const selector5 = {
       return itemLayout && area.boundingRect.contain(itemLayout[0], itemLayout[1]) && contain2(area.range, itemLayout[0], itemLayout[1]);
     },
     rect: function(itemLayout, selectors, area) {
-      const points9 = area.range;
-      if (!itemLayout || points9.length <= 1) {
+      const points11 = area.range;
+      if (!itemLayout || points11.length <= 1) {
         return false;
       }
       const x = itemLayout.x;
       const y = itemLayout.y;
       const width = itemLayout.width;
       const height = itemLayout.height;
-      const p = points9[0];
-      if (contain2(points9, x, y) || contain2(points9, x + width, y) || contain2(points9, x, y + height) || contain2(points9, x + width, y + height) || BoundingRect_default.create(itemLayout).contain(p[0], p[1]) || linePolygonIntersect(x, y, x + width, y, points9) || linePolygonIntersect(x, y, x, y + height, points9) || linePolygonIntersect(x + width, y, x + width, y + height, points9) || linePolygonIntersect(x, y + height, x + width, y + height, points9)) {
+      const p = points11[0];
+      if (contain2(points11, x, y) || contain2(points11, x + width, y) || contain2(points11, x, y + height) || contain2(points11, x + width, y + height) || BoundingRect_default.create(itemLayout).contain(p[0], p[1]) || linePolygonIntersect(x, y, x + width, y, points11) || linePolygonIntersect(x, y, x, y + height, points11) || linePolygonIntersect(x + width, y, x + width, y + height, points11) || linePolygonIntersect(x, y + height, x + width, y + height, points11)) {
         return true;
       }
     }
@@ -54732,12 +54741,12 @@ class MarkAreaView2 extends MarkerView_default {
       if (maModel) {
         const areaData = maModel.getData();
         areaData.each(function(idx) {
-          const points9 = map2(dimPermutations, function(dim) {
+          const points11 = map2(dimPermutations, function(dim) {
             return getSingleMarkerEndPoint(areaData, idx, dim, seriesModel, api);
           });
-          areaData.setItemLayout(idx, points9);
+          areaData.setItemLayout(idx, points11);
           const el = areaData.getItemGraphicEl(idx);
-          el.setShape("points", points9);
+          el.setShape("points", points11);
         });
       }
     }, this);
@@ -57679,10 +57688,10 @@ class ContinuousView extends VisualMapView_default {
   }
 }
 ContinuousView.type = "visualMap.continuous";
-function createPolygon(points9, cursor, onDrift, onDragEnd) {
+function createPolygon(points11, cursor, onDrift, onDragEnd) {
   return new Polygon_default({
     shape: {
-      points: points9
+      points: points11
     },
     draggable: !!onDrift,
     cursor,

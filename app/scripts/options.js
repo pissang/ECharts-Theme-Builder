@@ -548,7 +548,6 @@ function getOptions(vm) {
               }
           },
           {
-              colorSaturation: [0.35, 0.5],
               itemStyle: {
                   gapWidth: 1,
                   borderColorSaturation: 0.6
@@ -569,6 +568,8 @@ function getOptions(vm) {
               name: 'Disk Usage',
               type: 'treemap',
               visibleMin: 300,
+              leafDepth: 2,
+              roam: false,
               label: {
                   show: true,
                   formatter: '{b}'
