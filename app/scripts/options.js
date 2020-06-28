@@ -86,6 +86,7 @@ function getOptions(vm) {
       text: '折线图',
       subtext: '副标题样式'
     },
+    legend: {},
     series: getSeriesRandomValue('line'),
     xAxis: {
       type: 'category',
@@ -105,6 +106,7 @@ function getOptions(vm) {
       text: '折线堆积面积图',
       subtext: '副标题样式'
     },
+    legend: {},
     series: getSeriesRandomStack('line').map(function (seriesOpt) {
         seriesOpt.label = { show: true };
         return seriesOpt;
@@ -127,6 +129,7 @@ function getOptions(vm) {
     title: {
       text: '柱状图'
     },
+    legend: {},
     series: getSeriesRandomValue('bar'),
     xAxis: {
       type: 'category',
@@ -154,6 +157,7 @@ function getOptions(vm) {
     title: {
       text: '散点图'
     },
+    legend: {},
     series: getSeriesRandomValue('scatter'),
     tooltip: {
       trigger: 'item'
@@ -428,6 +432,7 @@ function getOptions(vm) {
 
 ////////////////////// 南丁格尔玫瑰图 ////////////////////////////////
 {
+  legend: { type: 'scroll', orient: 'vertical', left: 0},
   series: [{
       type: 'pie',
       data: [{
