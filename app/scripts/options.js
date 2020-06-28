@@ -142,6 +142,7 @@ function getOptions(vm) {
     title: {
       text: '柱状堆积图'
     },
+    legend: {},
     series: getSeriesRandomStack('bar').map(function (seriesOpt) {
         seriesOpt.label = { show: true };
         return seriesOpt;
